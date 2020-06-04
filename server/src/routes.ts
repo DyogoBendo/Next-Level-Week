@@ -17,12 +17,21 @@
 
 
 
-import express from 'express';
+import express, { request, response } from 'express';
+
+// importando os controllers
+import PointsController from './controllers/PointsController'; 
+import ItemsController from './controllers/ItemsController';
 
 const routes = express.Router(); // possibilita que as rotas sejam acessadas fora do arquivo principal
 
-routes.get('/', (request, response)=>{
-    return response.json({message: 'Hello World!'});
-});
+//intanciando os controllers
+const pointsController = new PointsController(); 
+const itemsController = new ItemsController();
+
+routes.get('/items', itemsController.index); // rota para pegar todos os itens
+routes.post('/points', pointsController.create); // criando um ponto de coleta
+routes.get('/points/:id', pointsController.show); // Mostrando um ponto de coleta especifico
+routes.get('/points', pointsController.index); // Mostrando potnos de coleta com filtros
 
 export default routes; // exportar rotas para que sejam acessadas pelo server

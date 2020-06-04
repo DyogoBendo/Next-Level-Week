@@ -9,5 +9,8 @@ module.exports = { // esse arquivo nao podemos usar a sintaxe 'exports default',
     migrations:{ // pasta onde estao as migrations
         directory: path.resolve(__dirname, 'src', 'database', 'migrations')
     },
+    seeds:{ // pasta onde estao as migrations
+        directory: path.resolve(__dirname, 'src', 'database', 'seeds')
+    },
     useNullAsDefault: true,
 };
