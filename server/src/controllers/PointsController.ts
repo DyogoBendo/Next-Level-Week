@@ -18,7 +18,7 @@ class PointsController {
 
     const point = {
       // variavel com todos os valores que serao inseridos
-      image: "https://images.unsplash.com/photo-1506484381205-f7945653044d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
+      image: request.file.filename,
       name, // quando o nome da variavel eh igual o nome do objeto que esta recebendo, podemos omitir
       email,
       whatsapp,
@@ -34,12 +34,15 @@ class PointsController {
 
     // relacionamento com a tabela de itens
 
-    const pointItems = items.map((item_id: number) => {
-      return {
-        item_id,
-        point_id,
-      };
-    });
+    const pointItems = items
+      .split(",")
+      .map((item: string) => Number(item.trim()))
+      .map((item_id: number) => {
+        return {
+          item_id,
+          point_id,
+        };
+      });
 
     await trx("point_items").insert(pointItems); // inserimos os calores de item_id e point_id em point_items
 
@@ -59,6 +62,12 @@ class PointsController {
       return response.status(400).json({ message: "Point not found" });
     }
 
+    const serializedPoint = {
+      // O mapa intera sobre cada um dos pontos, e podemos assim alterar o seu valor para entregar da forma que fique melhor para o frontend
+        ...point,
+        image_url: `http://192.168.56.1:3333/uploads/${point.image}`,
+    };
+
     /**
      * SELECT * FROM items
      * JOIN point_items on items_id = point_items.item_id
@@ -70,25 +79,32 @@ class PointsController {
       .where("point_items.point_id", id)
       .select("items.title");
 
-    return response.json({ point, items });
+    return response.json({ point: serializedPoint, items });
   }
   async index(request: Request, response: Response) {
     //Filtros de cidade, uf e itens -> Query params
     const { city, uf, items } = request.query;
 
     const parsedItems = String(items)
-      .split(',')
-      .map(item => Number(item.trim())); // Os valores das ids dos itens vem como string, separado por `,`, a ideia eh separar. Caso haja espaco entre cada virgula, o trim tira
+      .split(",")
+      .map((item) => Number(item.trim())); // Os valores das ids dos itens vem como string, separado por `,`, a ideia eh separar. Caso haja espaco entre cada virgula, o trim tira
 
-    const points = await knex ('points')
-    .join('point_items', 'points.id', '=', 'point_items.point_id')  
-    .whereIn('point_items.item_id', parsedItems) // Procura todos os pontos, que possuem um item que esta dentro do filtro parsedItems
-    .where('city', String(city)) // que a cidade e a mesma -> sempre bom destacar o tipo, como String, Number, etc, ja que pode vir qualquer coisa pela query
-    .where('uf', String(uf)) // que a uf eh a mesma
-    .distinct() // Garante que nao vai retornar o mesmo ponto de coleta duas vezes
-    .select('points.*'); // mostra apenas os pontos de coleta
+    const points = await knex("points")
+      .join("point_items", "points.id", "=", "point_items.point_id")
+      .whereIn("point_items.item_id", parsedItems) // Procura todos os pontos, que possuem um item que esta dentro do filtro parsedItems
+      .where("city", String(city)) // que a cidade e a mesma -> sempre bom destacar o tipo, como String, Number, etc, ja que pode vir qualquer coisa pela query
+      .where("uf", String(uf)) // que a uf eh a mesma
+      .distinct() // Garante que nao vai retornar o mesmo ponto de coleta duas vezes
+      .select("points.*"); // mostra apenas os pontos de coleta
 
-    return response.json(points);
+    const serializedPoints = points.map((point) => {
+      // O mapa intera sobre cada um dos pontos, e podemos assim alterar o seu valor para entregar da forma que fique melhor para o frontend
+      return {
+        ...point,
+        image_url: `http://192.168.56.1:3333/uploads/${point.image}`,
+      };
+    });
+    return response.json(serializedPoints);
   }
 }
 export default PointsController;

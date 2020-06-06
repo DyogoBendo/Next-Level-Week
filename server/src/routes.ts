@@ -23,15 +23,23 @@ import express, { request, response } from 'express';
 import PointsController from './controllers/PointsController'; 
 import ItemsController from './controllers/ItemsController';
 
+// importando o multer e a config dele
+import multer from 'multer'
+import multerConfig from './config/multer';
+
 const routes = express.Router(); // possibilita que as rotas sejam acessadas fora do arquivo principal
+
+// variavel para lidar com upload
+const upload = multer(multerConfig);
 
 //intanciando os controllers
 const pointsController = new PointsController(); 
 const itemsController = new ItemsController();
 
 routes.get('/items', itemsController.index); // rota para pegar todos os itens
-routes.post('/points', pointsController.create); // criando um ponto de coleta
 routes.get('/points/:id', pointsController.show); // Mostrando um ponto de coleta especifico
 routes.get('/points', pointsController.index); // Mostrando potnos de coleta com filtros
+
+routes.post('/points',upload.single('image'), pointsController.create); // criando um ponto de coleta, passamos tambem variavel de upload como parametro, como single, por ser uma unica imagem
 
 export default routes; // exportar rotas para que sejam acessadas pelo server
