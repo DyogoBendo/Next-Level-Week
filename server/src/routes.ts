@@ -15,17 +15,18 @@
  * Request Body: Parametros para criacao e atualizacao de informacoes -> senha, email, nome, etc
  */
 
-
-
-import express, { request, response } from 'express';
+import express, { request, response } from "express";
 
 // importando os controllers
-import PointsController from './controllers/PointsController'; 
-import ItemsController from './controllers/ItemsController';
+import PointsController from "./controllers/PointsController";
+import ItemsController from "./controllers/ItemsController";
 
 // importando o multer e a config dele
-import multer from 'multer'
-import multerConfig from './config/multer';
+import multer from "multer";
+import multerConfig from "./config/multer";
+
+// Validacao de dados
+import { celebrate, Joi } from "celebrate";
 
 const routes = express.Router(); // possibilita que as rotas sejam acessadas fora do arquivo principal
 
@@ -33,13 +34,31 @@ const routes = express.Router(); // possibilita que as rotas sejam acessadas for
 const upload = multer(multerConfig);
 
 //intanciando os controllers
-const pointsController = new PointsController(); 
+const pointsController = new PointsController();
 const itemsController = new ItemsController();
 
-routes.get('/items', itemsController.index); // rota para pegar todos os itens
-routes.get('/points/:id', pointsController.show); // Mostrando um ponto de coleta especifico
-routes.get('/points', pointsController.index); // Mostrando potnos de coleta com filtros
+routes.get("/items", itemsController.index); // rota para pegar todos os itens
+routes.get("/points/:id", pointsController.show); // Mostrando um ponto de coleta especifico
+routes.get("/points", pointsController.index); // Mostrando potnos de coleta com filtros
 
-routes.post('/points',upload.single('image'), pointsController.create); // criando um ponto de coleta, passamos tambem variavel de upload como parametro, como single, por ser uma unica imagem
+routes.post(
+  "/points",
+  upload.single("image"),
+  celebrate({
+    body: Joi.object().keys({
+      name: Joi.string().required(),
+      email: Joi.string().required().email(),
+      whatsapp: Joi.string().required(),
+      latitude: Joi.number().required(),
+      longitude: Joi.number().required(),
+      city: Joi.string().required(),
+      uf: Joi.string().required().max(2),
+      items: Joi.string().required(),
+    }),
+  }, {
+    abortEarly: false
+}),
+  pointsController.create
+); // criando um ponto de coleta, passamos tambem variavel de upload como parametro, como single, por ser uma unica imagem
 
 export default routes; // exportar rotas para que sejam acessadas pelo server

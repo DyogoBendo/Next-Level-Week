@@ -2,6 +2,7 @@ import express, { request, response } from 'express';
 import path from 'path'; // facilitador de navegacao de pastas
 import routes from './routes'; // importando as rotas
 import cors from 'cors'; // Adiciona o cors para nossa aplicacao
+import { errors } from 'celebrate' // Lidando com erros
 
 // Ao usar TypeScript, as bibliotecas precisam vir com as definicoes de tipo
 
@@ -12,5 +13,7 @@ app.use(express.json()); // express nao vem para trabalhar apenas com JSON, prec
 app.use(routes); // Digo para meu app usar as rotas
 
 app.use('/uploads', express.static(path.resolve(__dirname, '..', 'uploads'))); // usado para acessar arquivos que sao estaticos, que precisam ser acessados de forma direta, como imagens, pdf, etc
+
+app.use(errors()); // lidar com erros
 
 app.listen(3333);
